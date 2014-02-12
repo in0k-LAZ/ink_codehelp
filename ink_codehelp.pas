@@ -15,7 +15,8 @@ unit ink_codehelp;
 
 interface
 
-uses Classes, CodeTree, FindDeclarationTool, BasicCodeTools, CodeCache, CodeHelp, PascalParserTool, sysutils;
+uses RegExpr, ink_doc2html,
+  Classes, CodeTree, FindDeclarationTool, BasicCodeTools, CodeCache, CodeHelp, PascalParserTool, sysutils;
 
 type
 
@@ -60,6 +61,20 @@ begin
     end;
 end;
 
+function parce_inkDoc_2_HTML(const text:string):string;
+var i,j:integer;
+    s:string;
+begin
+    if ink_doc2html.inkDoc_2_HTML(text,j,i,s) then begin
+        result:=S;
+    end
+    else begin
+        result:='<span class="comment">'+text+'</span>'
+    end;
+    result:=result+'<br>'+LineEnding;
+end;
+
+
 { найти и сформировать строку HintFromComment для узлов из раздела Interface и Implementation}
 function TinkCodeHelpManager._ink_getComments(const Tool:TFindDeclarationTool; const NodeInterface,NodeImplementation:TCodeTreeNode):string;
 begin
@@ -80,7 +95,8 @@ begin
     if NodeInterface     <>nil then result:=result+_ink_getComment(Tool,NodeInterface);
     if NodeImplementation<>nil then result:=result+_ink_getComment(Tool,NodeImplementation);
     //--- а вот тут, наверно, можно попробовать "распарсить" pasDoc или аналоги
-    if Result<>'' then Result:='<span class="comment">'+TextToHTML(Result)+'</span><br>'+LineEnding;
+    // что мы и делаем
+    if Result<>'' then Result:=parce_inkDoc_2_HTML(Result)+LineEnding;
 end;
 
 { определить местоположение Узла в разделах Модуля }
