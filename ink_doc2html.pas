@@ -6,11 +6,11 @@ interface
 
 uses RegExpr, sysutils, strutils;
 
-
 function inkDoc_2_HTML(const sourceText:string; out inkDoc_Pos,inkDoc_len:integer; out htmlText:string):boolean;
 
-
 implementation
+
+{%region 'формирование HTML'                                      /fold}
 
 function _iD2HTML_2html_Title(const Text:string):string;
 begin
@@ -54,13 +54,16 @@ begin
     result:=result+'<span class="comment" style="font-size:85%">'+Text+'</span>';
 end;
 
+{%endregion}
+
+{%region 'ПАРСИНГ исходного текста'                               /fold}
 
 var
  _RE_:TRegExpr;
 
 const
-  cToken_incDoc_B  ='incDoc>'; //< Begin
-  cToken_incDoc_E  ='<incDoc'; //< End
+  cToken_incDoc_B  ='inkDoc>'; //< Begin
+  cToken_incDoc_E  ='<inkDoc'; //< End
 
   cToken_incDoc_prm='prm'; //< Название - Описание
   cToken_incDoc_ret='ret'; //< Название - Описание
@@ -284,22 +287,21 @@ begin
     end;
 end;
 
-//------------------------------------------------------------------------------
+{%endregion}
 
-
-{incDoc>текст "Hint from Comment" преобразовать в "формат" HTML          <
+{inkDoc>текст "Hint from Comment" преобразовать в "формат" HTML        <
     парсим текст по средством регулярных выражений
-    @prm(sourceText исходный текст)
-    @prm(inkDoc_Pos asdf asdf asdf )
-    @prm(inkDoc_len sdfg )
-    @prm(htmlText   asdf asdf asdf )
-    @ret(false критическая ошибка, НИЧЕГО не смогли поделать)
+    @prm(sourceText исходный текст в котором пытаемся найти НАШ формат)
+    @prm(inkDoc_Pos начальная позиция найденного фрагмента)
+    @prm(inkDoc_len длинна найденного фрагмента)
+    @prm(htmlText   результат работы функции в формате HTML)
+    @ret(false критическая ошибка, НИЧЕГО не смогли поделать, или этотого фрагмента нет)
     не совсем аккуратное (в смысле кода и кода html). и вооббще, надо сделать
     нормальный парсинг и синтактическим деревом для отлова вложенных скобок.
-<incDoc}
+<inkDoc}
 function inkDoc_2_HTML(const sourceText:string; out inkDoc_Pos,inkDoc_len:integer; out htmlText:string):boolean;
 begin
-    result:=_iD2HTML_(_RE_, sourceText,inkDoc_Pos,inkDoc_Pos,htmlText);
+    result:=_iD2HTML_(_RE_, sourceText,inkDoc_Pos,inkDoc_len,htmlText);
 end;
 
 initialization

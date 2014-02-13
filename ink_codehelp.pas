@@ -27,6 +27,7 @@ type
     function _inc_getNodePlace(const Tool:TFindDeclarationTool; const Node:TCodeTreeNode):TCodeTreeNodeDesc;
   public
     function GetPasDocCommentsAsHTML(Tool:TFindDeclarationTool; Node:TCodeTreeNode):string; override;
+    function PasDocCommentsToHTML(const srcText:string):string;
   end;
 
 
@@ -61,17 +62,27 @@ begin
     end;
 end;
 
-function parce_inkDoc_2_HTML(const text:string):string;
+function TinkCodeHelpManager.PasDocCommentsToHTML(const srcText:string):string;
 var i,j:integer;
-    s:string;
+tmpText:string;
 begin
-    if ink_doc2html.inkDoc_2_HTML(text,j,i,s) then begin
-        result:=S;
+    result:='';
+    //---
+    if ink_doc2html.inkDoc_2_HTML(srcText,j,i,tmpText) then begin
+        result :=tmpText;
+        tmpText:=srcText;
+        delete(tmpText,j,i);
     end
     else begin
-        result:='<span class="comment">'+text+'</span>'
+        tmpText:=srcText;
     end;
-    result:=result+'<br>'+LineEnding;
+    //---
+    if tmpText<>'' then begin
+        if result<>'' then result:=result+'<br>';
+        result:=result+'<span class="comment">'+TextToHTML(tmpText)+'</span>';
+    end;
+    //---
+    if result<>'' then result:=result+LineEnding;
 end;
 
 
@@ -91,12 +102,12 @@ begin
                                  else result:=result+'nil';
       result:=result+ LineEnding;
     {$endIf}
-
+    result:='';
     if NodeInterface     <>nil then result:=result+_ink_getComment(Tool,NodeInterface);
     if NodeImplementation<>nil then result:=result+_ink_getComment(Tool,NodeImplementation);
     //--- а вот тут, наверно, можно попробовать "распарсить" pasDoc или аналоги
     // что мы и делаем
-    if Result<>'' then Result:=parce_inkDoc_2_HTML(Result)+LineEnding;
+    if Result<>'' then Result:=PasDocCommentsToHTML(Result)+LineEnding;
 end;
 
 { определить местоположение Узла в разделах Модуля }
@@ -164,7 +175,7 @@ begin
            result:=result+ LineEnding;
          {$endIf}
          case _inc_getNodePlace(Tool,node) of
-           ctnInterface:
+           ctnInterface:   // Tool.FindDeclaration();
                 result:=result+_ink_getComments(Tool,node,Tool.FindCorrespondingProcNode(node,ProcAttr));
            ctnImplementation:
                 result:=result+_ink_getComments(Tool,Tool.FindCorrespondingProcNode(node,ProcAttr),node);
